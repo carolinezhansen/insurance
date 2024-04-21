@@ -43,19 +43,36 @@ final.data %>% group_by(year) %>% summarize(mean=mean(perc_medicaid)) %>%
 # Problem 4 
 # Plot the share of uninsured over time, separately by states that expanded Medicaid in 2014 versus those that did not. Drop all states that expanded after 2014.
 
-final_data <- final.data[final.data$expand_year <= 2014, ]
 
-ggplot(final_data, aes(x = year, y = perc_unins, color = expand_year == 2014)) +
+filtered <- final.data[final.data$expand_year <= 2014, ]
+notexpanded <- filtered[filtered$expand_year != 2014, ]
+expanded <- filtered[filtered$expand_year == 2014, ]
+
+filtered %>% group_by(year) %>% summarize(mean=mean(perc_unins)) %>%
+ggplot(filtered, aes(x = year, y=mean, color = expand_year == 2014)) +
   geom_line() +
   scale_color_manual(values = c("blue", "red"), labels = c("Did not expand in 2014", "Expanded in 2014")) +
   labs(x = "Year", y = "Uninsured Rate", title = "Uninsured Rate Over Time by Medicaid Expansion Status") +
   theme_minimal()
 
-ins.dat %>% group_by(year) %>% summarize(mean=mean(perc_unins)) %>%
+expanded %>% group_by(year) %>% summarize(mean=mean(perc_unins)) %>%
   ggplot(aes(x=year,y=mean)) + geom_line() + geom_point() + theme_bw() +
   labs(
     x="Year",
     y="Fraction Uninsured",
-    title="Share of Uninsured over Time"
+    title="Share of Uninsured over Time for Expanded States"
   ) +
   geom_vline(xintercept=2013.5, color="red")
+
+notexpanded %>% group_by(year) %>% summarize(mean=mean(perc_unins)) %>%
+  ggplot(aes(x=year,y=mean)) + geom_line() + geom_point() + theme_bw() +
+  labs(
+    x="Year",
+    y="Fraction Uninsured",
+    title="Share of Uninsured over Time for Expanded States"
+  ) +
+  geom_vline(xintercept=2013.5, color="red")
+
+  # Problem 5
+# Calculate the average percent of uninsured individuals in 2012 and 2015, separately for expansion and non-expansion states. Present your results in a basic 2x2 DD table.
+
