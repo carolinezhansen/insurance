@@ -84,7 +84,10 @@ problem4
 #| label: 5problem
 #| fig-cap: "Average Percent of Uninsured Individuals in 2012 and 2015"
 
-avg_did
+options(knitr.kable.NA = 0)
+knitr::kable(avg_did, 
+             col.names=c("Expansion Status","Percent Uninsured"),
+             format.args=list(big.mark=","), booktabs = TRUE) 
 
 ```
 

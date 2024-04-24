@@ -16,7 +16,9 @@ final.data <- final.data %>%
          perc_employer = ins_employer/adult_pop,
          perc_medicaid = ins_medicaid/adult_pop,
          perc_medicare = ins_medicare/adult_pop,
-         perc_direct = ins_direct/adult_pop)
+         perc_direct = ins_direct/adult_pop) %>%
+         filter(! State %in% c("Puerto Rico", "District of Columbia"))
+
 
 problem1 <- final.data %>% group_by(year) %>% summarize(mean=mean(perc_direct)) %>%
   ggplot(aes(x=year,y=mean)) + geom_line() + geom_point() + theme_bw() +
@@ -46,19 +48,6 @@ problem3 <- final.data %>% group_by(year) %>% summarize(mean=mean(perc_medicaid)
 
 # Problem 4 
 # Plot the share of uninsured over time, separately by states that expanded Medicaid in 2014 versus those that did not. Drop all states that expanded after 2014.
-
-
-filtered <- final.data[final.data$expand_year <= 2014, ]
-notexpanded <- filtered[filtered$expand_year != 2014, ]
-expanded <- filtered[filtered$expand_year == 2014, ]
-
-final.data %>% group_by(year) %>% summarize(mean=mean(perc_unins)) %>%
-ggplot(final.data, aes(x = year, y=mean, color = expand_year == 2014)) +
-  geom_line() +
-  scale_color_manual(values = c("blue", "red"), labels = c("Did not expand in 2014", "Expanded in 2014")) +
-  labs(x = "Year", y = "Uninsured Rate", title = "Uninsured Rate Over Time by Medicaid Expansion Status") +
-  theme_minimal()
-
 
 
 ins.plot.dat <- final.data %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
@@ -99,7 +88,7 @@ avg_did <- mcaid.data_diff %>%
 print(avg_did)
 # Problem 6
 #Estimate the effect of Medicaid expansion on the uninsurance rate using a standard DD regression estimator, again focusing only on states that expanded in 2014 versus those that never expanded.
-reg.dat <- final.data %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+reg.dat <- final.data %>% filter(expand_year==2014 | is.na(expand_year)) %>%
   mutate(perc_unins=uninsured/adult_pop,
          post = (year>=2014), 
          treat=post*expand_ever)
@@ -114,7 +103,7 @@ modelsummary(list("DD (2014)"=dd.ins.reg),
 #Problem 7
 # Include state and year fixed effects in your estimates. Try using the lfe or fixest package to estimate this instead of directly including the fixed effects.
 
-reg.dat <- final.data %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+reg.dat <- final.data %>% filter(expand_year==2014 | is.na(expand_year)) %>%
   mutate(perc_unins=uninsured/adult_pop,
          post = (year>=2014), 
          treat=post*expand_ever)
@@ -133,7 +122,11 @@ problem7 <- msummary(list("DD"=m.dd7, "TWFE"=m.twfe7),
 reg.dat8 <- final.data %>% 
   mutate(perc_unins=uninsured/adult_pop,
          post = (year>=2014), 
-         treat=post*expand_ever)
+         treat=post*expand_ever,
+         treat=case_when(
+          year>=expand_year & !is.na(expand_year) ~ 1,
+          is.na(expand_year) ~ 0,
+          year<expand_year & !is.na(expand_year) ~ 0))
 m.dd8 <- lm(perc_unins ~ post + expand_ever + treat, data=reg.dat8)
 m.twfe8 <- feols(perc_unins ~ treat | State + year, data=reg.dat8)
 problem8 <- msummary(list("DD"=m.dd8, "TWFE"=m.twfe8),
