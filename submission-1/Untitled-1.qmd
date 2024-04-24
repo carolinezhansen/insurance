@@ -1,0 +1,167 @@
+---
+title: "Submission1-HW5"
+subtitle: "Research Methods, Spring 2024"
+author: "Caroline Hansen"
+format:
+  pdf:
+    output-file: "carolinehw5-1"
+    output-ext:  "pdf"
+    header-includes:
+      - \usepackage{float}
+      - \floatplacement{table}{H}
+---
+
+
+ prefer-html: true
+
+```{r}
+#| include: false
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, fixest,
+               scales, gganimate, gapminder, gifski, png, tufte, plotly, OECD,
+               ggrepel, survey, foreign, devtools, pdftools, kableExtra, modelsummary,
+               kableExtra, webshot2,fixest)
+```
+
+```{r}
+#| include: false
+#| eval: true
+
+load("Hwk5_workspace.Rdata")
+```
+
+
+# Answers for Homework 5: Submission 1
+\newpage
+
+# Problem 1 
+\noindent 1. Plot the share of the adult population with direct purchase health insurance over time.
+```{r} 
+#| echo: false
+#| label: 1problem
+#| fig-cap: "Direct Purchase Health Insurance"
+
+problem1
+
+```
+
+# Problem 2
+\noindent 2. Discuss the reduction in direct purchase health insurance in later years. Can you list a couple of policies that might have affected the success of the direct purchase insurance market?
+
+
+The Affordable Care Act lead to people who do not have employer insurance, who might have bought individual insurance otherwise. 
+
+
+# Problem 3
+\noindent 3. Plot the share of the adult population with Medicaid over time.
+
+```{r} 
+#| echo: false
+#| label: 3problem
+#| fig-cap: "Medicaid Over Time"
+
+problem3
+
+```
+
+
+# Problem 4
+\noindent 4. Plot the share of uninsured over time, separately by states that expanded Medicaid in 2014 versus those that did not. Drop all states that expanded after 2014.
+
+```{r} 
+#| echo: false
+#| label: 4problem
+#| fig-cap: "Medicaid Over Time"
+
+problem4
+
+```
+
+# Problem 5
+\noindent 5. Calculate the average percent of uninsured individuals in 2012 and 2015, separately for expansion and non-expansion states. Present your results in a basic 2x2 DD table.
+```{r} 
+#| echo: false
+#| label: 5problem
+#| fig-cap: "Average Percent of Uninsured Individuals in 2012 and 2015"
+
+avg_did
+
+```
+
+# Problem 6
+\noindent 6. Estimate the effect of Medicaid expansion on the uninsurance rate using a standard DD regression estimator, again focusing only on states that expanded in 2014 versus those that never expanded.
+```{r} 
+#| echo: false
+#| label: 6problem
+#| fig-cap: "Medicaid Expansion DD Regression Estimator"
+
+modelsummary(list("DD (2014)"=dd.ins.reg),
+             shape=term + statistic ~ model, 
+             gof_map=NA,
+             coef_omit='Intercept',
+             vcov=~State
+         )
+```
+
+# Problem 7
+\noindent 7.I nclude state and year fixed effects in your estimates. Try using the lfe or fixest package to estimate this instead of directly including the fixed effects.
+
+```{r} 
+#| echo: false
+#| label: 7problem
+#| fig-cap: "Medicaid Expansion DD Regression Estimator"
+
+msummary(list("DD"=m.dd7, "TWFE"=m.twfe7),
+         shape=term + statistic ~ model, 
+         gof_map=NA,
+         coef_omit='Intercept',
+         vcov=~State
+         )
+
+
+```
+
+
+# Problem 8
+\noindent 8.Include state and year fixed effects in your estimates. Try using the lfe or fixest package to estimate this instead of directly including the fixed effects.
+
+```{r} 
+#| echo: false
+#| label: 8problem
+#| fig-cap: "Fixed Effects in Estimate"
+
+ msummary(list("DD"=m.dd8, "TWFE"=m.twfe8),
+         shape=term + statistic ~ model, 
+         gof_map=NA,
+         coef_omit='Intercept',
+         vcov=~State
+         )
+```
+
+# Problem 9
+\noindent 9.Include state and year fixed effects in your estimates. Try using the lfe or fixest package to estimate this instead of directly including the fixed effects.
+
+```{r} 
+#| echo: false
+#| label: 9problem
+#| fig-cap: "Fixed Effects in Estimate"
+
+iplot(mod.twfe9, 
+      xlab = 'Time to treatment',
+      main = 'Event study')
+
+```
+
+# Problem 10
+\noindent 10.Include state and year fixed effects in your estimates. Try using the lfe or fixest package to estimate this instead of directly including the fixed effects.
+
+```{r} 
+#| echo: false
+#| label: 10problem
+#| fig-cap: "Fixed Effects in Estimate"
+
+iplot(mod.twfe9, 
+      xlab = 'Time to treatment',
+      main = 'Event study')
+
+```
