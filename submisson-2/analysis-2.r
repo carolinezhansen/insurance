@@ -167,4 +167,4 @@ mod.twfe10 <- feols(perc_unins~i(time_to_treat, expand_ever, ref=-1) | State + y
                   cluster=~State,
                   data=reg.dat)
 
-save.image("submission-2/Hwk5_workspace.Rdata")
+save.image("submission-2/Hwk5.1_workspace.Rdata")

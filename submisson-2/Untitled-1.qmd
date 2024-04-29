@@ -1,5 +1,5 @@
 ---
-title: "Submission2-HW5"
+title: "Submission1-HW5"
 subtitle: "Research Methods, Spring 2024"
 author: "Caroline Hansen"
 format:
@@ -26,11 +26,11 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes, 
 #| include: false
 #| eval: true
 
-load("Hwk5.1_workspace.Rdata")
+load("Hwk5_workspace.Rdata")
 ```
 
 
-# Answers for Homework 5: Submission 2
+# Answers for Homework 5: Submission 1
 \newpage
 
 # Problem 1 
@@ -96,10 +96,13 @@ knitr::kable(avg_did,
 #| echo: false
 #| label: 6problem
 #| fig-cap: "Medicaid Expansion DD Regression Estimator"
-modelsummary(dd.ins.reg,
-             coef_rename=c("postTRUE" = "Post 2014","expand_everTRUE"="Expand",
-                           "treat" = "Post x Expand"),
-             gof_omit='DF|F|Lik|AIC|BIC|Adj')
+
+modelsummary(list("DD (2014)"=dd.ins.reg),
+             shape=term + statistic ~ model, 
+             gof_map=NA,
+             coef_omit='Intercept',
+             vcov=~State
+         )
 ```
 
 # Problem 7
@@ -110,11 +113,14 @@ modelsummary(dd.ins.reg,
 #| label: 7problem
 #| fig-cap: "Medicaid Expansion DD Regression Estimator"
 
-models <- list("Standard DD" = m.dd7, 
-               "TWFE" = m.twfe7)
-modelsummary(models,
-             coef_rename=c("postTRUE" = "Post 2014","expand_everTRUE"="Expand",
-                           "treat" = "Post x Expand"))
+msummary(list("DD"=m.dd7, "TWFE"=m.twfe7),
+         shape=term + statistic ~ model, 
+         gof_map=NA,
+         coef_omit='Intercept',
+         vcov=~State
+         )
+
+
 ```
 
 
@@ -156,7 +162,7 @@ iplot(mod.twfe9,
 #| label: 10problem
 #| fig-cap: "Fixed Effects in Estimate"
 
-iplot(mod.twfe10, 
+iplot(mod.twfe9, 
       xlab = 'Time to treatment',
       main = 'Event study')
 
