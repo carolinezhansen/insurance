@@ -1,4 +1,4 @@
-# analysis-2
+# analysis-3
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, scales, acs, tidyr, modelsummary, fixest)
@@ -72,33 +72,26 @@ final.data$expand_ever
 # Calculate the average percent of uninsured individuals in 2012 and 2015, separately for expansion and non-expansion states. Present your results in a basic 2x2 DD table.
 # Filter the data for the years 2012 and 2015
 mcaid.data_filtered <- final.data %>%
-  filter(year %in% c(2012, 2015))
+  filter(year %in% c(2012, 2015), !State %in% c("Puerto Rico", "District of Columbia"))
 
-# Calculate the difference in the percent uninsured between 2012 and 2015 for each state
 mcaid.data_diff <- mcaid.data_filtered %>%
-  group_by(State) %>%
-  mutate(diff_uninsured = last(uninsured / adult_pop) - first(uninsured / adult_pop),
-  post = (year>=2014), 
-         pre = (year<2014))
+  group_by(expand_ever, year) %>%
+  summarise(uninsured = mean(uninsured / adult_pop, na.rm = TRUE))
+
+mcaid.data_diff <- pivot_wider(mcaid.data_diff, names_from = "year", names_prefix = "year", values_from = "uninsured") %>%
+  ungroup() %>%
+  mutate(expand_ever = case_when(
+    expand_ever == FALSE ~ 'Non-expansion',
+    expand_ever == TRUE ~ 'Expansion')
+  ) %>%
+  rename(Group = expand_ever,
+         Pre = year2012,
+         Post = year2015)
+
+print(mcaid.data_diff)
 
 
-# Group the data by expand_ever (Medicaid expansion status) and calculate the average difference-in-differences estimator
-mcaid.data_filtered <- final.data %>% 
-  filter(year %in% c(2012, 2015))
 
-# Calculate the difference in the percent uninsured between 2012 and 2015 for each state
-mcaid.data_diff <- mcaid.data_filtered %>%
-  group_by(State) %>%
-  mutate(diff_uninsured = last(uninsured / adult_pop) - first(uninsured / adult_pop))
-
-# Group the data by expand_ever (Medicaid expansion status) and calculate the average difference-in-differences estimator
-avg_did <- mcaid.data_diff %>%
-  group_by(expand_ever) %>%
-  summarise(pre = mean(diff_uninsured[year< 2014], na.rm = TRUE),
-            post = mean(diff_uninsured[year>=2014], na.rm = TRUE))
-
-# Print the result
-print(avg_did)
 # Problem 6
 #Estimate the effect of Medicaid expansion on the uninsurance rate using a standard DD regression estimator, again focusing only on states that expanded in 2014 versus those that never expanded.
 reg.dat <- final.data %>% filter(expand_year==2014 | is.na(expand_year)) %>%
@@ -160,12 +153,15 @@ reg.dat <- final.data %>%
          time_to_treat = ifelse(expand_ever==FALSE, 0, year-expand_year),
          time_to_treat = ifelse(time_to_treat < -3, -3, time_to_treat))
 
-mod.twfe9 <- feols(perc_unins~i(time_to_treat, expand_ever, ref=-1) | State + year,
-                  cluster=~State,
-                  data=reg.dat)
 problem9 <- iplot(mod.twfe9, 
       xlab = 'Time to treatment',
       main = 'Event study')
+
+mod.twfe9 <- feols(perc_unins~i(year, expand_ever, ref=2013) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+
+
 
 # Repeat part 9 but again include states that expanded after 2014. Note: this is tricky…you need to put all states onto “event time” to create this graph.
 reg.dat10 <- final.data %>% 
@@ -173,11 +169,12 @@ reg.dat10 <- final.data %>%
   mutate(perc_unins=uninsured/adult_pop,
          post = (year>=2014), 
          treat=post*expand_ever,
-         time_to_treat = ifelse(expand_ever==FALSE, 0, year-expand_year),
-         time_to_treat = ifelse(time_to_treat < -3, -3, time_to_treat))
+         time_to_treat = ifelse(expand_ever==TRUE, year-expand_year, -1),
+         time_to_treat = ifelse(time_to_treat < -4, -4, time_to_treat))
 
 mod.twfe10 <- feols(perc_unins~i(time_to_treat, expand_ever, ref=-1) | State + year,
                   cluster=~State,
-                  data=reg.dat)
+                  data=reg.dat10)
 
-save.image("submission-2/Hwk5.1_workspace.Rdata")
+
+save.image("submission-3/Hwk5.1_workspace.Rdata")
